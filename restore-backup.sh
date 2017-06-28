@@ -8,13 +8,13 @@ fi
 dst_dir=/var/mysql/data
 mkdir -p $dst_dir
 
-if [[ $backup_file == *.tar.gz ]]; then
+if [[ $backup_file == *.tar ]]; then
     format="tar"
 fi
 
 if [ "$format" = "tar" ]; then
     echo "Extracting /backup/${backup_file} to ${dst_dir}..."
-    tar -izxvf /backup/$backup_file -C $dst_dir
+    tar -ixvf /backup/$backup_file -C $dst_dir --strip 1
     if [ $? -ne 0 ]; then
         echo "Error: extracting backup file '$backup_file' to '$dst_dir' failed!!!" >&2
         rm -rf $tmp_dir
@@ -24,11 +24,13 @@ if [ "$format" = "tar" ]; then
     fi
 # unsupported format
 else
-    echo "Error: unknown backup file format, only xxx.tar.gz file format is supported." >&2
+    echo "Error: unknown backup file format, only xxx.tar file format is supported." >&2
     Usage
     rm -rf $tmp_dir
     exit 1
 fi
+
+ls -lh $dst_dir
 
 innobackupex --defaults-file=$dst_dir/backup-my.cnf --apply-log $dst_dir
 if [ $? -ne 0 ]; then
